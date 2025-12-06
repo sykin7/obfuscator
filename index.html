@@ -3,393 +3,803 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JavaScript 代码安全系统</title>
+    <title>JS 代码安全控制台</title>
     <script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --bg-dark: #1e1e1e;
-            --bg-panel: #252526;
-            --bg-header: #333333;
-            --border: #3e3e42;
-            --accent: #007acc;
-            --accent-hover: #0098ff;
-            --text-main: #d4d4d4;
-            --text-muted: #858585;
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --border: #334155;
+            --danger: #ef4444;
+            --success: #22c55e;
         }
 
-        * { box-sizing: border-box; outline: none; }
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
 
         body {
-            margin: 0; padding: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-primary);
             height: 100vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
 
-        header {
-            height: 50px;
-            background-color: var(--bg-header);
+        .navbar {
+            height: 60px;
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
-            padding: 0 20px;
-            border-bottom: 1px solid var(--bg-dark);
+            justify-content: space-between;
+            padding: 0 24px;
             flex-shrink: 0;
         }
-        header h1 { font-size: 16px; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 10px; }
-        header h1 i { color: var(--accent); }
 
-        .layout { display: flex; flex: 1; overflow: hidden; }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: -0.5px;
+        }
 
-        .sidebar {
-            width: 320px;
-            background-color: var(--bg-panel);
+        .brand i { color: var(--accent); font-size: 20px; }
+
+        .actions { display: flex; gap: 12px; align-items: center; }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-primary { background-color: var(--accent); color: #0f172a; }
+        .btn-primary:hover { background-color: var(--accent-hover); }
+        
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-primary); }
+        .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+        .lang-select {
+            background-color: var(--bg-body);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            margin-right: 8px;
+        }
+        .lang-select:hover { border-color: var(--accent); }
+
+        .layout-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .config-panel {
+            width: 360px;
+            background-color: var(--bg-card);
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             overflow-y: auto;
+            flex-shrink: 0;
         }
 
-        .settings-section { padding: 0 15px; border-bottom: 1px solid #333; padding-bottom: 15px; }
-        .section-title {
-            font-size: 11px;
-            font-weight: bold;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            margin: 15px 0 10px 0;
-            letter-spacing: 0.5px;
-        }
-
-        .control-group { margin-bottom: 10px; }
-        .control-group label { display: flex; align-items: center; font-size: 13px; cursor: pointer; user-select: none; }
-        .control-group input[type="checkbox"] { margin-right: 8px; accent-color: var(--accent); }
-        
-        .select-group { margin-bottom: 12px; }
-        .select-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
-        .select-group select {
-            width: 100%;
-            background-color: #3c3c3c;
-            color: white;
-            border: 1px solid #3c3c3c;
-            padding: 6px;
-            font-size: 13px;
-            border-radius: 2px;
-        }
-        .select-group select:focus { border-color: var(--accent); }
-
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
+        .config-section {
             padding: 20px;
-            background-color: var(--bg-dark);
+            border-bottom: 1px solid var(--border);
         }
 
-        .toolbar { display: flex; gap: 10px; margin-bottom: 10px; justify-content: flex-end; }
-        
-        button {
-            background-color: #3e3e42;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            font-size: 13px;
-            cursor: pointer;
-            border-radius: 2px;
+        .section-header {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
             display: flex;
             align-items: center;
-            gap: 6px;
-            transition: 0.2s;
+            gap: 8px;
         }
-        button:hover { background-color: #505055; }
-        
-        button.primary { background-color: var(--accent); }
-        button.primary:hover { background-color: var(--accent-hover); }
-        
-        button.file-btn { background-color: #2d8a4e; }
-        button.file-btn:hover { background-color: #36a55d; }
 
-        .editors {
-            display: flex;
-            flex: 1;
-            gap: 20px;
-            min-height: 0;
+        .form-group { margin-bottom: 16px; }
+        .form-group:last-child { margin-bottom: 0; }
+        
+        label { display: block; font-size: 13px; margin-bottom: 6px; color: var(--text-primary); }
+        
+        .sub-label { font-size: 11px; color: var(--text-secondary); margin-top: 4px; display: block; }
+
+        input[type="text"], input[type="number"], select, textarea {
+            width: 100%;
+            background-color: var(--bg-body);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            transition: border 0.2s;
         }
-        .editor-box {
+        
+        input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 36px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--bg-input);
+            transition: .4s;
+            border-radius: 20px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--accent); }
+        input:checked + .slider:before { transform: translateX(16px); }
+
+        .range-container { display: flex; align-items: center; gap: 10px; }
+        input[type="range"] { flex: 1; accent-color: var(--accent); height: 4px; }
+        .range-value { font-size: 12px; color: var(--text-secondary); width: 35px; text-align: right; }
+
+        .editor-area {
             flex: 1;
             display: flex;
             flex-direction: column;
+            background-color: var(--bg-body);
             min-width: 0;
         }
-        .box-header {
+
+        .editor-split {
+            flex: 1;
+            display: flex;
+            gap: 1px;
+            background-color: var(--border); 
+            min-height: 0;
+        }
+
+        .code-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-body);
+            min-width: 0;
+        }
+
+        .pane-header {
+            padding: 10px 16px;
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
-            color: var(--text-muted);
-            font-size: 12px;
-            margin-bottom: 5px;
+            align-items: center;
         }
-        textarea {
-            flex: 1;
-            background-color: #1e1e1e;
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            padding: 15px;
-            font-family: 'Consolas', monospace;
-            font-size: 14px;
-            resize: none;
-            line-height: 1.5;
-        }
-        textarea:focus { border-color: var(--accent); }
 
-        #file-input { display: none; }
-        
-        .status-bar {
-            height: 24px;
-            background-color: var(--accent);
-            color: white;
-            font-size: 12px;
+        .pane-title { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+
+        .code-textarea {
+            flex: 1;
+            width: 100%;
+            background-color: var(--bg-body);
+            color: #d4d4d4;
+            border: none;
+            padding: 20px;
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            resize: none;
+        }
+
+        .stats-footer {
+            height: 30px;
+            background-color: var(--bg-card);
+            border-top: 1px solid var(--border);
             display: flex;
             align-items: center;
-            padding: 0 15px;
-            position: fixed;
-            bottom: 0; width: 100%;
-            display: none;
+            padding: 0 16px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            gap: 20px;
+            flex-shrink: 0;
         }
+
+        .stat-item { display: flex; align-items: center; gap: 6px; }
+        .stat-item i { font-size: 10px; }
+
+        .toast {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 12px 20px;
+            border-radius: 6px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 1000;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { border-left: 4px solid var(--success); }
+        .toast.error { border-left: 4px solid var(--danger); }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-body); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
     </style>
 </head>
 <body>
 
-<header>
-    <h1><i class="fas fa-shield-alt"></i> JavaScript 代码安全系统</h1>
-</header>
+<nav class="navbar">
+    <div class="brand">
+        <i class="fas fa-shield-halved"></i>
+        <span data-i18n="title">JS 安全控制台</span>
+    </div>
+    <div class="actions">
+        <select class="lang-select" onchange="app.setLanguage(this.value)">
+            <option value="zh" selected>🇨🇳 中文</option>
+            <option value="en">🇺🇸 English</option>
+        </select>
+        <input type="file" id="fileUpload" style="display:none" accept=".js">
+        <button class="btn btn-outline" onclick="document.getElementById('fileUpload').click()">
+            <i class="fas fa-upload"></i> <span data-i18n="btnImport">导入文件</span>
+        </button>
+        <button class="btn btn-primary" id="btnObfuscate" onclick="app.process()">
+            <i class="fas fa-bolt"></i> <span data-i18n="btnBuild">执行混淆</span>
+        </button>
+    </div>
+</nav>
 
-<div class="layout">
-    <aside class="sidebar">
+<div class="layout-container">
+    <aside class="config-panel">
         
-        <div class="settings-section">
-            <div class="section-title">核心选项</div>
-            <div class="control-group">
-                <label><input type="checkbox" id="compact" checked> 代码压缩 (Compact)</label>
+        <div class="config-section">
+            <div class="section-header"><i class="fas fa-cog"></i> <span data-i18n="secCore">核心设置</span></div>
+            
+            <div class="form-group">
+                <label data-i18n="lblTarget">运行环境</label>
+                <select id="opt_target">
+                    <option value="browser" data-i18n="optBrowser">Web 浏览器 (默认)</option>
+                    <option value="browser-no-eval" data-i18n="optBrowserNoEval">Web 浏览器 (无 Eval)</option>
+                    <option value="node" data-i18n="optNode">Node.js 后端</option>
+                </select>
             </div>
-            <div class="control-group">
-                <label><input type="checkbox" id="selfDefending"> 防护机制 (Self Defending)</label>
+
+            <div class="toggle-row">
+                <label data-i18n="lblCompact">代码压缩</label>
+                <label class="switch">
+                    <input type="checkbox" id="opt_compact" checked>
+                    <span class="slider"></span>
+                </label>
             </div>
             
-            <div class="select-group">
-                <label>运行环境</label>
-                <select id="target">
-                    <option value="browser">Web 浏览器</option>
-                    <option value="browser-no-eval">Web 浏览器 (无 Eval)</option>
-                    <option value="node">Node.js 后端</option>
-                </select>
+            <div class="toggle-row">
+                <label data-i18n="lblSelfDefending">自我防护机制</label>
+                <label class="switch">
+                    <input type="checkbox" id="opt_selfDefending">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <div class="form-group">
+                <label data-i18n="lblSeed">随机种子 (Seed)</label>
+                <div style="display:flex; gap:8px;">
+                    <input type="number" id="opt_seed" value="0" placeholder="0 = 随机">
+                    <button class="btn btn-outline" style="padding:4px 8px;" onclick="document.getElementById('opt_seed').value = Math.floor(Math.random() * 999999)"><i class="fas fa-random"></i></button>
+                </div>
             </div>
         </div>
 
-        <div class="settings-section">
-            <div class="section-title">标识符处理</div>
-            <div class="control-group">
-                <label><input type="checkbox" id="renameGlobals"> 重命名全局变量</label>
-            </div>
+        <div class="config-section">
+            <div class="section-header"><i class="fas fa-random"></i> <span data-i18n="secTrans">变形设置</span></div>
             
-            <div class="select-group">
-                <label>命名生成器</label>
-                <select id="identifierNamesGenerator">
-                    <option value="hexadecimal">十六进制 (Hexadecimal)</option>
-                    <option value="mangled">短字符 (Mangled)</option>
-                    <option value="dictionary">字典模式 (Dictionary)</option>
-                </select>
+            <div class="toggle-row">
+                <label data-i18n="lblControlFlow">控制流平坦化</label>
+                <label class="switch">
+                    <input type="checkbox" id="opt_controlFlow" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="form-group">
+                <div class="range-container">
+                    <input type="range" id="opt_controlFlowThreshold" min="0" max="1" step="0.1" value="0.75" oninput="app.updateRange(this)">
+                    <span class="range-value" id="val_controlFlowThreshold">0.75</span>
+                </div>
+                <span class="sub-label" data-i18n="lblProb">触发概率阈值</span>
+            </div>
+
+            <div class="toggle-row" style="margin-top: 20px;">
+                <label data-i18n="lblDeadCode">僵尸代码注入</label>
+                <label class="switch">
+                    <input type="checkbox" id="opt_deadCode">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="form-group">
+                <div class="range-container">
+                    <input type="range" id="opt_deadCodeThreshold" min="0" max="1" step="0.1" value="0.4" oninput="app.updateRange(this)">
+                    <span class="range-value" id="val_deadCodeThreshold">0.4</span>
+                </div>
+                <span class="sub-label" data-i18n="lblProb">触发概率阈值</span>
             </div>
         </div>
 
-        <div class="settings-section">
-            <div class="section-title">数据加密</div>
-            <div class="control-group">
-                <label><input type="checkbox" id="stringArray" checked> 字符串阵列</label>
-            </div>
-            <div class="control-group">
-                <label><input type="checkbox" id="stringArrayRotate" checked> 阵列旋转</label>
-            </div>
-            <div class="control-group">
-                <label><input type="checkbox" id="stringArrayShuffle" checked> 阵列乱序</label>
-            </div>
+        <div class="config-section">
+            <div class="section-header"><i class="fas fa-font"></i> <span data-i18n="secString">字符串加密</span></div>
             
-            <div class="select-group">
-                <label>编码算法</label>
-                <select id="stringArrayEncoding">
-                    <option value="false">关闭</option>
+            <div class="toggle-row">
+                <label data-i18n="lblStringArray">启用字符串阵列</label>
+                <label class="switch">
+                    <input type="checkbox" id="opt_stringArray" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label data-i18n="lblEncoding">编码算法</label>
+                <select id="opt_stringEncoding">
+                    <option value="none" data-i18n="optNone">不编码</option>
                     <option value="base64">Base64</option>
-                    <option value="rc4">RC4</option>
+                    <option value="rc4" data-i18n="optRC4">RC4 (推荐)</option>
                 </select>
             </div>
+
+            <div class="toggle-row">
+                <label data-i18n="lblRotate">阵列旋转</label>
+                <label class="switch">
+                    <input type="checkbox" id="opt_rotate" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
             
-            <div class="control-group">
-                <label><input type="checkbox" id="splitStrings" checked> 字符串分割</label>
+            <div class="toggle-row">
+                <label data-i18n="lblShuffle">阵列乱序</label>
+                <label class="switch">
+                    <input type="checkbox" id="opt_shuffle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <div class="form-group">
+                <label data-i18n="lblThreshold">加密阈值</label>
+                <div class="range-container">
+                    <input type="range" id="opt_stringThreshold" min="0" max="1" step="0.1" value="0.75" oninput="app.updateRange(this)">
+                    <span class="range-value" id="val_stringThreshold">0.75</span>
+                </div>
             </div>
         </div>
 
-        <div class="settings-section">
-            <div class="section-title">高级防护</div>
-            <div class="control-group">
-                <label><input type="checkbox" id="controlFlowFlattening" checked> 控制流平坦化</label>
+        <div class="config-section">
+            <div class="section-header"><i class="fas fa-fingerprint"></i> <span data-i18n="secId">标识符混淆</span></div>
+            
+            <div class="form-group">
+                <label data-i18n="lblRenameStrategy">重命名策略</label>
+                <select id="opt_identifierGenerator">
+                    <option value="hexadecimal" data-i18n="optHex">十六进制 (默认)</option>
+                    <option value="mangled" data-i18n="optMangled">短字符 (Mangled)</option>
+                    <option value="dictionary" data-i18n="optDict">字典模式</option>
+                </select>
             </div>
-            <div class="control-group">
-                <label><input type="checkbox" id="deadCodeInjection"> 冗余代码注入</label>
+
+            <div class="toggle-row">
+                <label data-i18n="lblRenameGlobal">重命名全局变量</label>
+                <label class="switch">
+                    <input type="checkbox" id="opt_renameGlobals">
+                    <span class="slider"></span>
+                </label>
             </div>
-            <div class="control-group">
-                <label><input type="checkbox" id="debugProtection"> 反调试检测</label>
-            </div>
-            <div class="control-group">
-                <label><input type="checkbox" id="disableConsole"> 禁用控制台</label>
+            
+            <div class="form-group">
+                <label data-i18n="lblPrefix">变量前缀</label>
+                <input type="text" id="opt_idPrefix" placeholder="_0x">
+                <span class="sub-label" data-i18n="subPrefix">统一添加的变量前缀</span>
             </div>
         </div>
+
+        <div class="config-section">
+            <div class="section-header"><i class="fas fa-shield-alt"></i> <span data-i18n="secLock">安全防护 & 锁定</span></div>
+            
+            <div class="toggle-row">
+                <label data-i18n="lblDebug">防调试检测</label>
+                <label class="switch">
+                    <input type="checkbox" id="opt_debug">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <div class="toggle-row">
+                <label data-i18n="lblConsole">禁用控制台</label>
+                <label class="switch">
+                    <input type="checkbox" id="opt_disableConsole">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <div class="form-group">
+                <label data-i18n="lblDomain">域名锁定</label>
+                <textarea id="opt_domainLock" rows="2" placeholder="example.com, sub.example.com"></textarea>
+                <span class="sub-label" data-i18n="subDomain">仅允许代码在指定域名下运行，逗号分隔。</span>
+            </div>
+        </div>
+        
+        <div style="height: 50px;"></div>
     </aside>
 
-    <main class="main-content">
-        <div class="toolbar">
-            <input type="file" id="file-input" accept=".js,.txt">
-            <button class="file-btn" onclick="document.getElementById('file-input').click()">
-                <i class="fas fa-folder-open"></i> 导入脚本
-            </button>
-            
-            <button onclick="clearAll()"><i class="fas fa-trash"></i> 清空</button>
-            <button class="primary" id="btn-run" onclick="runObfuscation()">
-                <i class="fas fa-bolt"></i> 执行处理
-            </button>
-        </div>
-
-        <div class="editors">
-            <div class="editor-box">
-                <div class="box-header">
-                    <span>源代码</span>
-                    <span id="input-stats">0 Bytes</span>
-                </div>
-                <textarea id="input-code" placeholder="在此粘贴代码或导入文件..."></textarea>
-            </div>
-            <div class="editor-box">
-                <div class="box-header">
-                    <span>处理结果</span>
-                    <button style="background:none; border:none; color:#007acc; padding:0; cursor:pointer;" onclick="copyResult()">
-                        <i class="far fa-copy"></i> 复制结果
+    <main class="editor-area">
+        <div class="editor-split">
+            <div class="code-pane">
+                <div class="pane-header">
+                    <span class="pane-title" data-i18n="titleInput">源代码 (INPUT)</span>
+                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11px;" onclick="app.clear()">
+                        <i class="fas fa-trash"></i> <span data-i18n="btnClear">清空</span>
                     </button>
                 </div>
-                <textarea id="output-code" readonly placeholder="等待处理..."></textarea>
+                <textarea class="code-textarea" id="inputCode" placeholder="// 在此粘贴 JavaScript 代码..." spellcheck="false"></textarea>
             </div>
+            
+            <div class="code-pane">
+                <div class="pane-header">
+                    <span class="pane-title" data-i18n="titleOutput">混淆结果 (OUTPUT)</span>
+                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11px;" onclick="app.copy()">
+                        <i class="far fa-copy"></i> <span data-i18n="btnCopy">复制</span>
+                    </button>
+                </div>
+                <textarea class="code-textarea" id="outputCode" readonly spellcheck="false" placeholder="等待处理..."></textarea>
+            </div>
+        </div>
+        
+        <div class="stats-footer">
+            <div class="stat-item" id="stat_status"><i class="fas fa-circle" style="color: #64748b;"></i> <span data-i18n="statReady">就绪</span></div>
+            <div style="width: 1px; height: 14px; background: var(--border);"></div>
+            <div class="stat-item"><i class="fas fa-file-code"></i> <span data-i18n="statOrig">原始大小</span>: <span id="stat_orig">0 B</span></div>
+            <div class="stat-item"><i class="fas fa-compress-arrows-alt"></i> <span data-i18n="statObf">混淆大小</span>: <span id="stat_obf">0 B</span></div>
         </div>
     </main>
 </div>
 
-<div class="status-bar" id="status-bar"></div>
+<div class="toast" id="toast">
+    <i class="fas fa-info-circle"></i>
+    <span id="toastMsg">Notification</span>
+</div>
 
 <script>
-    const inputEl = document.getElementById('input-code');
-    const outputEl = document.getElementById('output-code');
-    const fileInput = document.getElementById('file-input');
-    const statusEl = document.getElementById('status-bar');
-
-    fileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            inputEl.value = e.target.result;
-            updateStats();
-            showStatus(`已加载: ${file.name}`);
-        };
-        reader.readAsText(file);
-        fileInput.value = ''; 
-    });
-
-    inputEl.addEventListener('input', updateStats);
-    function updateStats() {
-        const bytes = new Blob([inputEl.value]).size;
-        document.getElementById('input-stats').innerText = formatBytes(bytes);
-    }
-    function formatBytes(bytes) {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    }
-
-    function runObfuscation() {
-        const code = inputEl.value;
-        if (!code.trim()) {
-            showStatus('错误: 请先输入代码', true);
-            return;
+    const translations = {
+        zh: {
+            title: "JS 安全控制台",
+            btnImport: "导入文件",
+            btnBuild: "执行混淆",
+            secCore: "核心设置",
+            lblTarget: "运行环境",
+            optBrowser: "Web 浏览器 (默认)",
+            optBrowserNoEval: "Web 浏览器 (无 Eval)",
+            optNode: "Node.js 后端",
+            lblCompact: "代码压缩",
+            lblSelfDefending: "自我防护机制",
+            lblSeed: "随机种子 (Seed)",
+            secTrans: "变形设置",
+            lblControlFlow: "控制流平坦化",
+            lblProb: "触发概率阈值",
+            lblDeadCode: "僵尸代码注入",
+            secString: "字符串加密",
+            lblStringArray: "启用字符串阵列",
+            lblEncoding: "编码算法",
+            optNone: "不编码",
+            optRC4: "RC4 (推荐)",
+            lblRotate: "阵列旋转",
+            lblShuffle: "阵列乱序",
+            lblThreshold: "加密阈值",
+            secId: "标识符混淆",
+            lblRenameStrategy: "重命名策略",
+            optHex: "十六进制 (默认)",
+            optMangled: "短字符 (Mangled)",
+            optDict: "字典模式",
+            lblRenameGlobal: "重命名全局变量",
+            lblPrefix: "变量前缀",
+            subPrefix: "统一添加的变量前缀",
+            secLock: "安全防护 & 锁定",
+            lblDebug: "防调试检测",
+            lblConsole: "禁用控制台",
+            lblDomain: "域名锁定",
+            subDomain: "仅允许代码在指定域名下运行，逗号分隔。",
+            titleInput: "源代码 (INPUT)",
+            btnClear: "清空",
+            titleOutput: "混淆结果 (OUTPUT)",
+            btnCopy: "复制",
+            statReady: "就绪",
+            statOrig: "原始大小",
+            statObf: "混淆大小",
+            msgLoaded: "文件已加载: ",
+            msgInput: "请先输入源代码。",
+            msgBuild: "处理中...",
+            msgSuccess: "混淆处理完成",
+            msgError: "处理失败",
+            msgCopied: "已复制到剪贴板",
+            phInput: "// 在此粘贴 JavaScript 代码...",
+            phOutput: "等待处理..."
+        },
+        en: {
+            title: "JS Security Console",
+            btnImport: "Import File",
+            btnBuild: "Obfuscate Code",
+            secCore: "Core Settings",
+            lblTarget: "Target Environment",
+            optBrowser: "Web Browser (Default)",
+            optBrowserNoEval: "Web Browser (No Eval)",
+            optNode: "Node.js Backend",
+            lblCompact: "Compact Code",
+            lblSelfDefending: "Self Defending",
+            lblSeed: "Seed (Randomization)",
+            secTrans: "Transformation",
+            lblControlFlow: "Control Flow Flattening",
+            lblProb: "Probability Threshold",
+            lblDeadCode: "Dead Code Injection",
+            secString: "String Array",
+            lblStringArray: "String Array",
+            lblEncoding: "Encoding Algorithm",
+            optNone: "None",
+            optRC4: "RC4 (Strongest)",
+            lblRotate: "Rotate Array",
+            lblShuffle: "Shuffle Array",
+            lblThreshold: "Threshold",
+            secId: "Identifiers",
+            lblRenameStrategy: "Renaming Strategy",
+            optHex: "Hexadecimal (Default)",
+            optMangled: "Mangled (Short)",
+            optDict: "Dictionary",
+            lblRenameGlobal: "Rename Globals",
+            lblPrefix: "Identifier Prefix",
+            subPrefix: "Prefix for all renamed variables",
+            secLock: "Protection & Locks",
+            lblDebug: "Debug Protection",
+            lblConsole: "Disable Console",
+            lblDomain: "Domain Lock",
+            subDomain: "Comma separated. Code runs only on these domains.",
+            titleInput: "INPUT (SOURCE)",
+            btnClear: "Clear",
+            titleOutput: "OUTPUT (DIST)",
+            btnCopy: "Copy",
+            statReady: "Ready",
+            statOrig: "Original",
+            statObf: "Obfuscated",
+            msgLoaded: "File loaded: ",
+            msgInput: "Please input source code first.",
+            msgBuild: "Building...",
+            msgSuccess: "Build Successful",
+            msgError: "Build Failed",
+            msgCopied: "Copied to clipboard",
+            phInput: "// Paste JavaScript code here...",
+            phOutput: "Waiting for build..."
         }
+    };
 
-        const btn = document.getElementById('btn-run');
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 处理中...';
-        btn.disabled = true;
+    let currentLang = 'zh';
 
-        setTimeout(() => {
-            try {
-                const options = {
-                    compact: document.getElementById('compact').checked,
-                    controlFlowFlattening: document.getElementById('controlFlowFlattening').checked,
-                    controlFlowFlatteningThreshold: 0.75,
-                    deadCodeInjection: document.getElementById('deadCodeInjection').checked,
-                    deadCodeInjectionThreshold: 0.4,
-                    debugProtection: document.getElementById('debugProtection').checked,
-                    disableConsoleOutput: document.getElementById('disableConsole').checked,
-                    identifierNamesGenerator: document.getElementById('identifierNamesGenerator').value,
-                    numbersToExpressions: true,
-                    renameGlobals: document.getElementById('renameGlobals').checked,
-                    selfDefending: document.getElementById('selfDefending').checked,
-                    simplify: true,
-                    splitStrings: document.getElementById('splitStrings').checked,
-                    stringArray: document.getElementById('stringArray').checked,
-                    stringArrayEncoding: (function() {
-                        const val = document.getElementById('stringArrayEncoding').value;
-                        return val === 'false' ? false : [val];
-                    })(),
-                    stringArrayRotate: document.getElementById('stringArrayRotate').checked,
-                    stringArrayShuffle: document.getElementById('stringArrayShuffle').checked,
-                    stringArrayThreshold: 0.75,
-                    target: document.getElementById('target').value,
-                    transformObjectKeys: true,
-                    unicodeEscapeSequence: false
-                };
+    const app = {
+        init: () => {
+            document.getElementById('fileUpload').addEventListener('change', app.handleFile);
+            document.getElementById('inputCode').addEventListener('input', app.updateStats);
+        },
 
-                const result = JavaScriptObfuscator.obfuscate(code, options);
-                outputEl.value = result.getObfuscatedCode();
-                showStatus('处理完成');
-            } catch (err) {
-                console.error(err);
-                outputEl.value = `Error:\n${err.message}`;
-                showStatus('处理失败', true);
-            } finally {
-                btn.innerHTML = '<i class="fas fa-bolt"></i> 执行处理';
-                btn.disabled = false;
+        setLanguage: (lang) => {
+            currentLang = lang;
+            const t = translations[lang];
+            
+            // Text Content
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.textContent = t[key];
+            });
+
+            // Placeholders
+            document.getElementById('inputCode').placeholder = t.phInput;
+            document.getElementById('outputCode').placeholder = t.phOutput;
+
+            // Re-update status text
+            app.updateStats(); 
+        },
+
+        updateRange: (el) => {
+            document.getElementById('val_' + el.id.replace('opt_', '')).textContent = el.value;
+        },
+
+        handleFile: (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                document.getElementById('inputCode').value = event.target.result;
+                app.updateStats();
+                app.notify(translations[currentLang].msgLoaded + file.name, 'success');
+            };
+            reader.readAsText(file);
+        },
+
+        getConfig: () => {
+            const getVal = (id) => document.getElementById(id).value;
+            const getCheck = (id) => document.getElementById(id).checked;
+            const getNum = (id) => parseFloat(document.getElementById(id).value);
+
+            const encVal = getVal('opt_stringEncoding');
+            const stringArrayEncoding = encVal === 'none' ? false : [encVal];
+
+            const domains = getVal('opt_domainLock').split(',').map(d => d.trim()).filter(d => d);
+
+            return {
+                target: getVal('opt_target'),
+                seed: getNum('opt_seed'),
+                compact: getCheck('opt_compact'),
+                selfDefending: getCheck('opt_selfDefending'),
+                
+                controlFlowFlattening: getCheck('opt_controlFlow'),
+                controlFlowFlatteningThreshold: getNum('opt_controlFlowThreshold'),
+                
+                deadCodeInjection: getCheck('opt_deadCode'),
+                deadCodeInjectionThreshold: getNum('opt_deadCodeThreshold'),
+                
+                stringArray: getCheck('opt_stringArray'),
+                stringArrayEncoding: stringArrayEncoding,
+                stringArrayRotate: getCheck('opt_rotate'),
+                stringArrayShuffle: getCheck('opt_shuffle'),
+                stringArrayThreshold: getNum('opt_stringThreshold'),
+                
+                identifierNamesGenerator: getVal('opt_identifierGenerator'),
+                identifiersPrefix: getVal('opt_idPrefix') || '',
+                renameGlobals: getCheck('opt_renameGlobals'),
+                
+                debugProtection: getCheck('opt_debug'),
+                disableConsoleOutput: getCheck('opt_disableConsole'),
+                domainLock: domains,
+                
+                numbersToExpressions: true,
+                simplify: true,
+                splitStrings: true,
+                splitStringsChunkLength: 10,
+                transformObjectKeys: true,
+                unicodeEscapeSequence: false
+            };
+        },
+
+        process: () => {
+            const source = document.getElementById('inputCode').value;
+            const t = translations[currentLang];
+            
+            if (!source.trim()) {
+                app.notify(t.msgInput, 'error');
+                return;
             }
-        }, 50);
-    }
 
-    function clearAll() {
-        inputEl.value = '';
-        outputEl.value = '';
-        updateStats();
-        inputEl.focus();
-    }
+            const btn = document.getElementById('btnObfuscate');
+            const icon = btn.querySelector('i');
+            const span = btn.querySelector('span');
+            const originalText = span.textContent;
+            
+            icon.className = 'fas fa-circle-notch fa-spin';
+            span.textContent = t.msgBuild;
+            btn.disabled = true;
 
-    function copyResult() {
-        if (!outputEl.value) return;
-        outputEl.select();
-        document.execCommand('copy');
-        showStatus('已复制');
-    }
+            setTimeout(() => {
+                try {
+                    const config = app.getConfig();
+                    const result = JavaScriptObfuscator.obfuscate(source, config);
+                    
+                    document.getElementById('outputCode').value = result.getObfuscatedCode();
+                    app.updateStats();
+                    app.notify(t.msgSuccess, 'success');
+                    
+                    document.getElementById('stat_status').innerHTML = `<i class="fas fa-check-circle" style="color: var(--success)"></i> ${t.msgSuccess}`;
+                    
+                } catch (err) {
+                    console.error(err);
+                    document.getElementById('outputCode').value = `/* ERROR */\n\n${err.message}`;
+                    app.notify(t.msgError, 'error');
+                    document.getElementById('stat_status').innerHTML = `<i class="fas fa-exclamation-triangle" style="color: var(--danger)"></i> Error`;
+                } finally {
+                    icon.className = 'fas fa-bolt';
+                    span.textContent = originalText;
+                    btn.disabled = false;
+                }
+            }, 100);
+        },
 
-    function showStatus(msg, isError = false) {
-        statusEl.style.display = 'flex';
-        statusEl.style.backgroundColor = isError ? '#d32f2f' : '#007acc';
-        statusEl.innerText = msg;
-        setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
-    }
+        copy: () => {
+            const out = document.getElementById('outputCode');
+            if (!out.value) return;
+            out.select();
+            document.execCommand('copy');
+            window.getSelection().removeAllRanges();
+            app.notify(translations[currentLang].msgCopied, 'success');
+        },
+
+        clear: () => {
+            document.getElementById('inputCode').value = '';
+            document.getElementById('outputCode').value = '';
+            app.updateStats();
+        },
+
+        updateStats: () => {
+            const inputLen = new Blob([document.getElementById('inputCode').value]).size;
+            const outputLen = new Blob([document.getElementById('outputCode').value]).size;
+            const t = translations[currentLang];
+            
+            document.getElementById('stat_orig').textContent = app.formatBytes(inputLen);
+            document.getElementById('stat_obf').textContent = app.formatBytes(outputLen);
+            
+            // 如果状态栏不是"完成"状态，则重置为就绪
+            if(!document.getElementById('stat_status').innerHTML.includes('check-circle')) {
+                 document.getElementById('stat_status').innerHTML = `<i class="fas fa-circle" style="color: #64748b;"></i> ${t.statReady}`;
+            }
+        },
+
+        formatBytes: (bytes) => {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        },
+
+        notify: (msg, type) => {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            
+            toast.className = `toast ${type}`;
+            toastMsg.textContent = msg;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    };
+
+    app.init();
 </script>
 
 </body>
