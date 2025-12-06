@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的 JS 代码混淆工具</title>
+    <script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #1e1e1e; color: #d4d4d4; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; height: 100vh; box-sizing: border-box; }
+        h1 { color: #4CAF50; margin-bottom: 10px; font-size: 24px; }
+        .container { display: flex; width: 100%; max-width: 1200px; height: 80%; gap: 20px; }
+        .box { flex: 1; display: flex; flex-direction: column; }
+        label { margin-bottom: 8px; font-weight: bold; color: #9cdcfe; }
+        textarea { flex: 1; background-color: #252526; color: #d4d4d4; border: 1px solid #3c3c3c; padding: 15px; font-family: 'Consolas', monospace; font-size: 14px; resize: none; outline: none; border-radius: 5px; }
+        textarea:focus { border-color: #007acc; }
+        .controls { display: flex; justify-content: center; align-items: center; padding: 20px 0; gap: 15px; width: 100%; }
+        button { padding: 12px 30px; font-size: 16px; cursor: pointer; border: none; border-radius: 4px; transition: background 0.2s; font-weight: bold; }
+        #btn-obfuscate { background-color: #007acc; color: white; }
+        #btn-obfuscate:hover { background-color: #005f9e; }
+        #btn-copy { background-color: #4CAF50; color: white; display: none; }
+        #btn-copy:hover { background-color: #45a049; }
+        .options-panel { background: #2d2d2d; padding: 15px; border-radius: 5px; margin-bottom: 20px; width: 100%; max-width: 1200px; box-sizing: border-box; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; border: 1px solid #3c3c3c; }
+        .option-item { display: flex; align-items: center; gap: 5px; font-size: 14px; }
+        .loading { opacity: 0.5; pointer-events: none; }
+    </style>
+</head>
+<body>
+    <h1>⚡ JS 代码深度混淆器 (云端版)</h1>
+    <div class="options-panel">
+        <div class="option-item"><input type="checkbox" id="opt-compact" checked><label for="opt-compact">压缩代码</label></div>
+        <div class="option-item"><input type="checkbox" id="opt-flatten" checked><label for="opt-flatten">控制流扁平化</label></div>
+        <div class="option-item"><input type="checkbox" id="opt-self-defending" checked><label for="opt-self-defending">自我防御</label></div>
+        <div class="option-item"><input type="checkbox" id="opt-string-array" checked><label for="opt-string-array">字符串加密</label></div>
+    </div>
+    <div class="container">
+        <div class="box"><label>输入源代码 (JS):</label><textarea id="input-code" placeholder="// 粘贴代码..."></textarea></div>
+        <div class="box"><label>混淆后代码:</label><textarea id="output-code" readonly placeholder="结果..."></textarea></div>
+    </div>
+    <div class="controls"><button id="btn-obfuscate" onclick="runObfuscation()">开始混淆</button><button id="btn-copy" onclick="copyResult()">复制结果</button></div>
+    <script>
+        function runObfuscation() {
+            const input = document.getElementById('input-code').value;
+            const outputArea = document.getElementById('output-code');
+            const btn = document.getElementById('btn-obfuscate');
+            if (!input.trim()) { alert("请先输入代码！"); return; }
+            btn.innerText = "处理中..."; document.body.classList.add('loading');
+            setTimeout(() => {
+                try {
+                    const result = JavaScriptObfuscator.obfuscate(input, {
+                        compact: document.getElementById('opt-compact').checked,
+                        controlFlowFlattening: document.getElementById('opt-flatten').checked,
+                        controlFlowFlatteningThreshold: 1,
+                        numbersToExpressions: true, simplify: true,
+                        stringArray: document.getElementById('opt-string-array').checked,
+                        stringArrayEncoding: ['rc4'], stringArrayThreshold: 1, splitStrings: true,
+                        selfDefending: document.getElementById('opt-self-defending').checked,
+                        deadCodeInjection: true, deadCodeInjectionThreshold: 0.4
+                    });
+                    outputArea.value = result.getObfuscatedCode();
+                    document.getElementById('btn-copy').style.display = "block";
+                } catch (e) { outputArea.value = "错误: " + e.message; }
+                finally { btn.innerText = "开始混淆"; document.body.classList.remove('loading'); }
+            }, 100);
+        }
+        function copyResult() { document.getElementById('output-code').select(); document.execCommand('copy'); alert("已复制！"); }
+    </script>
+</body>
+</html>
