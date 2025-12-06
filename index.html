@@ -3,66 +3,394 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的 JS 代码混淆工具</title>
+    <title>JavaScript 代码安全系统</title>
     <script src="https://cdn.jsdelivr.net/npm/javascript-obfuscator/dist/index.browser.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #1e1e1e; color: #d4d4d4; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; height: 100vh; box-sizing: border-box; }
-        h1 { color: #4CAF50; margin-bottom: 10px; font-size: 24px; }
-        .container { display: flex; width: 100%; max-width: 1200px; height: 80%; gap: 20px; }
-        .box { flex: 1; display: flex; flex-direction: column; }
-        label { margin-bottom: 8px; font-weight: bold; color: #9cdcfe; }
-        textarea { flex: 1; background-color: #252526; color: #d4d4d4; border: 1px solid #3c3c3c; padding: 15px; font-family: 'Consolas', monospace; font-size: 14px; resize: none; outline: none; border-radius: 5px; }
-        textarea:focus { border-color: #007acc; }
-        .controls { display: flex; justify-content: center; align-items: center; padding: 20px 0; gap: 15px; width: 100%; }
-        button { padding: 12px 30px; font-size: 16px; cursor: pointer; border: none; border-radius: 4px; transition: background 0.2s; font-weight: bold; }
-        #btn-obfuscate { background-color: #007acc; color: white; }
-        #btn-obfuscate:hover { background-color: #005f9e; }
-        #btn-copy { background-color: #4CAF50; color: white; display: none; }
-        #btn-copy:hover { background-color: #45a049; }
-        .options-panel { background: #2d2d2d; padding: 15px; border-radius: 5px; margin-bottom: 20px; width: 100%; max-width: 1200px; box-sizing: border-box; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; border: 1px solid #3c3c3c; }
-        .option-item { display: flex; align-items: center; gap: 5px; font-size: 14px; }
-        .loading { opacity: 0.5; pointer-events: none; }
+        :root {
+            --bg-dark: #1e1e1e;
+            --bg-panel: #252526;
+            --bg-header: #333333;
+            --border: #3e3e42;
+            --accent: #007acc;
+            --accent-hover: #0098ff;
+            --text-main: #d4d4d4;
+            --text-muted: #858585;
+        }
+
+        * { box-sizing: border-box; outline: none; }
+
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            height: 50px;
+            background-color: var(--bg-header);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 1px solid var(--bg-dark);
+            flex-shrink: 0;
+        }
+        header h1 { font-size: 16px; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 10px; }
+        header h1 i { color: var(--accent); }
+
+        .layout { display: flex; flex: 1; overflow: hidden; }
+
+        .sidebar {
+            width: 320px;
+            background-color: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .settings-section { padding: 0 15px; border-bottom: 1px solid #333; padding-bottom: 15px; }
+        .section-title {
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin: 15px 0 10px 0;
+            letter-spacing: 0.5px;
+        }
+
+        .control-group { margin-bottom: 10px; }
+        .control-group label { display: flex; align-items: center; font-size: 13px; cursor: pointer; user-select: none; }
+        .control-group input[type="checkbox"] { margin-right: 8px; accent-color: var(--accent); }
+        
+        .select-group { margin-bottom: 12px; }
+        .select-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+        .select-group select {
+            width: 100%;
+            background-color: #3c3c3c;
+            color: white;
+            border: 1px solid #3c3c3c;
+            padding: 6px;
+            font-size: 13px;
+            border-radius: 2px;
+        }
+        .select-group select:focus { border-color: var(--accent); }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            background-color: var(--bg-dark);
+        }
+
+        .toolbar { display: flex; gap: 10px; margin-bottom: 10px; justify-content: flex-end; }
+        
+        button {
+            background-color: #3e3e42;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
+        }
+        button:hover { background-color: #505055; }
+        
+        button.primary { background-color: var(--accent); }
+        button.primary:hover { background-color: var(--accent-hover); }
+        
+        button.file-btn { background-color: #2d8a4e; }
+        button.file-btn:hover { background-color: #36a55d; }
+
+        .editors {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+            min-height: 0;
+        }
+        .editor-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        .box-header {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        textarea {
+            flex: 1;
+            background-color: #1e1e1e;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 15px;
+            font-family: 'Consolas', monospace;
+            font-size: 14px;
+            resize: none;
+            line-height: 1.5;
+        }
+        textarea:focus { border-color: var(--accent); }
+
+        #file-input { display: none; }
+        
+        .status-bar {
+            height: 24px;
+            background-color: var(--accent);
+            color: white;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            position: fixed;
+            bottom: 0; width: 100%;
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <h1>⚡ JS 代码深度混淆器 (云端版)</h1>
-    <div class="options-panel">
-        <div class="option-item"><input type="checkbox" id="opt-compact" checked><label for="opt-compact">压缩代码</label></div>
-        <div class="option-item"><input type="checkbox" id="opt-flatten" checked><label for="opt-flatten">控制流扁平化</label></div>
-        <div class="option-item"><input type="checkbox" id="opt-self-defending" checked><label for="opt-self-defending">自我防御</label></div>
-        <div class="option-item"><input type="checkbox" id="opt-string-array" checked><label for="opt-string-array">字符串加密</label></div>
-    </div>
-    <div class="container">
-        <div class="box"><label>输入源代码 (JS):</label><textarea id="input-code" placeholder="// 粘贴代码..."></textarea></div>
-        <div class="box"><label>混淆后代码:</label><textarea id="output-code" readonly placeholder="结果..."></textarea></div>
-    </div>
-    <div class="controls"><button id="btn-obfuscate" onclick="runObfuscation()">开始混淆</button><button id="btn-copy" onclick="copyResult()">复制结果</button></div>
-    <script>
-        function runObfuscation() {
-            const input = document.getElementById('input-code').value;
-            const outputArea = document.getElementById('output-code');
-            const btn = document.getElementById('btn-obfuscate');
-            if (!input.trim()) { alert("请先输入代码！"); return; }
-            btn.innerText = "处理中..."; document.body.classList.add('loading');
-            setTimeout(() => {
-                try {
-                    const result = JavaScriptObfuscator.obfuscate(input, {
-                        compact: document.getElementById('opt-compact').checked,
-                        controlFlowFlattening: document.getElementById('opt-flatten').checked,
-                        controlFlowFlatteningThreshold: 1,
-                        numbersToExpressions: true, simplify: true,
-                        stringArray: document.getElementById('opt-string-array').checked,
-                        stringArrayEncoding: ['rc4'], stringArrayThreshold: 1, splitStrings: true,
-                        selfDefending: document.getElementById('opt-self-defending').checked,
-                        deadCodeInjection: true, deadCodeInjectionThreshold: 0.4
-                    });
-                    outputArea.value = result.getObfuscatedCode();
-                    document.getElementById('btn-copy').style.display = "block";
-                } catch (e) { outputArea.value = "错误: " + e.message; }
-                finally { btn.innerText = "开始混淆"; document.body.classList.remove('loading'); }
-            }, 100);
+
+<header>
+    <h1><i class="fas fa-shield-alt"></i> JavaScript 代码安全系统</h1>
+</header>
+
+<div class="layout">
+    <aside class="sidebar">
+        
+        <div class="settings-section">
+            <div class="section-title">核心选项</div>
+            <div class="control-group">
+                <label><input type="checkbox" id="compact" checked> 代码压缩 (Compact)</label>
+            </div>
+            <div class="control-group">
+                <label><input type="checkbox" id="selfDefending"> 防护机制 (Self Defending)</label>
+            </div>
+            
+            <div class="select-group">
+                <label>运行环境</label>
+                <select id="target">
+                    <option value="browser">Web 浏览器</option>
+                    <option value="browser-no-eval">Web 浏览器 (无 Eval)</option>
+                    <option value="node">Node.js 后端</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <div class="section-title">标识符处理</div>
+            <div class="control-group">
+                <label><input type="checkbox" id="renameGlobals"> 重命名全局变量</label>
+            </div>
+            
+            <div class="select-group">
+                <label>命名生成器</label>
+                <select id="identifierNamesGenerator">
+                    <option value="hexadecimal">十六进制 (Hexadecimal)</option>
+                    <option value="mangled">短字符 (Mangled)</option>
+                    <option value="dictionary">字典模式 (Dictionary)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <div class="section-title">数据加密</div>
+            <div class="control-group">
+                <label><input type="checkbox" id="stringArray" checked> 字符串阵列</label>
+            </div>
+            <div class="control-group">
+                <label><input type="checkbox" id="stringArrayRotate" checked> 阵列旋转</label>
+            </div>
+            <div class="control-group">
+                <label><input type="checkbox" id="stringArrayShuffle" checked> 阵列乱序</label>
+            </div>
+            
+            <div class="select-group">
+                <label>编码算法</label>
+                <select id="stringArrayEncoding">
+                    <option value="false">关闭</option>
+                    <option value="base64">Base64</option>
+                    <option value="rc4">RC4</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label><input type="checkbox" id="splitStrings" checked> 字符串分割</label>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <div class="section-title">高级防护</div>
+            <div class="control-group">
+                <label><input type="checkbox" id="controlFlowFlattening" checked> 控制流平坦化</label>
+            </div>
+            <div class="control-group">
+                <label><input type="checkbox" id="deadCodeInjection"> 冗余代码注入</label>
+            </div>
+            <div class="control-group">
+                <label><input type="checkbox" id="debugProtection"> 反调试检测</label>
+            </div>
+            <div class="control-group">
+                <label><input type="checkbox" id="disableConsole"> 禁用控制台</label>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="toolbar">
+            <input type="file" id="file-input" accept=".js,.txt">
+            <button class="file-btn" onclick="document.getElementById('file-input').click()">
+                <i class="fas fa-folder-open"></i> 导入脚本
+            </button>
+            
+            <button onclick="clearAll()"><i class="fas fa-trash"></i> 清空</button>
+            <button class="primary" id="btn-run" onclick="runObfuscation()">
+                <i class="fas fa-bolt"></i> 执行处理
+            </button>
+        </div>
+
+        <div class="editors">
+            <div class="editor-box">
+                <div class="box-header">
+                    <span>源代码</span>
+                    <span id="input-stats">0 Bytes</span>
+                </div>
+                <textarea id="input-code" placeholder="在此粘贴代码或导入文件..."></textarea>
+            </div>
+            <div class="editor-box">
+                <div class="box-header">
+                    <span>处理结果</span>
+                    <button style="background:none; border:none; color:#007acc; padding:0; cursor:pointer;" onclick="copyResult()">
+                        <i class="far fa-copy"></i> 复制结果
+                    </button>
+                </div>
+                <textarea id="output-code" readonly placeholder="等待处理..."></textarea>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div class="status-bar" id="status-bar"></div>
+
+<script>
+    const inputEl = document.getElementById('input-code');
+    const outputEl = document.getElementById('output-code');
+    const fileInput = document.getElementById('file-input');
+    const statusEl = document.getElementById('status-bar');
+
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            inputEl.value = e.target.result;
+            updateStats();
+            showStatus(`已加载: ${file.name}`);
+        };
+        reader.readAsText(file);
+        fileInput.value = ''; 
+    });
+
+    inputEl.addEventListener('input', updateStats);
+    function updateStats() {
+        const bytes = new Blob([inputEl.value]).size;
+        document.getElementById('input-stats').innerText = formatBytes(bytes);
+    }
+    function formatBytes(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function runObfuscation() {
+        const code = inputEl.value;
+        if (!code.trim()) {
+            showStatus('错误: 请先输入代码', true);
+            return;
         }
-        function copyResult() { document.getElementById('output-code').select(); document.execCommand('copy'); alert("已复制！"); }
-    </script>
+
+        const btn = document.getElementById('btn-run');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 处理中...';
+        btn.disabled = true;
+
+        setTimeout(() => {
+            try {
+                const options = {
+                    compact: document.getElementById('compact').checked,
+                    controlFlowFlattening: document.getElementById('controlFlowFlattening').checked,
+                    controlFlowFlatteningThreshold: 0.75,
+                    deadCodeInjection: document.getElementById('deadCodeInjection').checked,
+                    deadCodeInjectionThreshold: 0.4,
+                    debugProtection: document.getElementById('debugProtection').checked,
+                    disableConsoleOutput: document.getElementById('disableConsole').checked,
+                    identifierNamesGenerator: document.getElementById('identifierNamesGenerator').value,
+                    numbersToExpressions: true,
+                    renameGlobals: document.getElementById('renameGlobals').checked,
+                    selfDefending: document.getElementById('selfDefending').checked,
+                    simplify: true,
+                    splitStrings: document.getElementById('splitStrings').checked,
+                    stringArray: document.getElementById('stringArray').checked,
+                    stringArrayEncoding: (function() {
+                        const val = document.getElementById('stringArrayEncoding').value;
+                        return val === 'false' ? false : [val];
+                    })(),
+                    stringArrayRotate: document.getElementById('stringArrayRotate').checked,
+                    stringArrayShuffle: document.getElementById('stringArrayShuffle').checked,
+                    stringArrayThreshold: 0.75,
+                    target: document.getElementById('target').value,
+                    transformObjectKeys: true,
+                    unicodeEscapeSequence: false
+                };
+
+                const result = JavaScriptObfuscator.obfuscate(code, options);
+                outputEl.value = result.getObfuscatedCode();
+                showStatus('处理完成');
+            } catch (err) {
+                console.error(err);
+                outputEl.value = `Error:\n${err.message}`;
+                showStatus('处理失败', true);
+            } finally {
+                btn.innerHTML = '<i class="fas fa-bolt"></i> 执行处理';
+                btn.disabled = false;
+            }
+        }, 50);
+    }
+
+    function clearAll() {
+        inputEl.value = '';
+        outputEl.value = '';
+        updateStats();
+        inputEl.focus();
+    }
+
+    function copyResult() {
+        if (!outputEl.value) return;
+        outputEl.select();
+        document.execCommand('copy');
+        showStatus('已复制');
+    }
+
+    function showStatus(msg, isError = false) {
+        statusEl.style.display = 'flex';
+        statusEl.style.backgroundColor = isError ? '#d32f2f' : '#007acc';
+        statusEl.innerText = msg;
+        setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
+    }
+</script>
+
 </body>
 </html>
